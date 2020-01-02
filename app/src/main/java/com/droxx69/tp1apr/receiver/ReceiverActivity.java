@@ -3,81 +3,103 @@ package com.droxx69.tp1apr.receiver;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.widget.Button;
 import android.widget.Toast;
 
+import com.buildware.widget.indeterm.IndeterminateCheckBox;
 import com.droxx69.tp1apr.R;
-import com.google.android.material.textfield.TextInputEditText;
+import com.github.angads25.toggle.widget.LabeledSwitch;
 import com.google.android.material.textfield.TextInputLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReceiverActivity extends AppCompatActivity {
 
-    TextView waiting, noiseLevel;
-    TextInputLayout textView;
     int portnumber = 8000;
-//    String serverAdresse = "192.168.1.108";
-    String serverAdresse = "192.168.43.9";
+        String serverAdresse = "192.168.1.108";
+//    String serverAdresse = "192.168.43.9";
+    public Button btnReturnAck;
+    String protocol;
 
-    public SeekBar seekBar;
-    public int noise;
+    public TextInputLayout frame0, frame1, frame2, frame3;
+    private IndeterminateCheckBox checkFrame0, checkFrame1, checkFrame2, checkFrame3;
+
 
     public void showToast(String str) {
         Toast.makeText(this, str, Toast.LENGTH_LONG).show();
     }
+
+//    public void setFrameText(String text, int number) {
+//        switch (number) {
+//            case 0:
+//                frame0.getEditText().setText(text);
+//                break;
+//            case 1:
+//                frame1.getEditText().setText(text);
+//                break;
+//            case 2:
+//                frame2.getEditText().setText(text);
+//                break;
+//            case 3:
+//                frame3.getEditText().setText(text);
+//                break;
+//        }
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reveiver);
 
-        noiseLevel = findViewById(R.id.textView2);
+        LabeledSwitch labeledSwitch = findViewById(R.id.switch_button2);
+        labeledSwitch.setOnToggledListener((toggleableView, isOn) -> protocol = isOn ? "selective" : "goBack");
 
-//        seekBar = findViewById(R.id.seekBar);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                noise = progress;
-                noiseLevel.setText("Noise level : " + progress);
-            }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
+        btnReturnAck = findViewById(R.id.btnReturnAck);
 
-            }
+        frame0 = findViewById(R.id.frameZeroInput);
+        frame1 = findViewById(R.id.frameOneInput);
+        frame2 = findViewById(R.id.frameTwoInput);
+        frame3 = findViewById(R.id.frameThreeInput);
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+        checkFrame0 = findViewById(R.id.checkFrame0);
+        checkFrame1 = findViewById(R.id.checkFrame1);
+        checkFrame2 = findViewById(R.id.checkFrame2);
+        checkFrame3 = findViewById(R.id.checkFrame3);
 
-            }
-        });
 
         Receiver receiver = new Receiver(serverAdresse, portnumber, this);
 
-        if (receiver.connect()) {
+        if (receiver.connect())
             Toast.makeText(this, "Connected to server", Toast.LENGTH_SHORT).show();
-        } else {
+        else
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
-        }
-//        textView = findViewById(R.id.textView);
-        waiting = findViewById(R.id.textView3);
+
+        btnReturnAck.setOnClickListener(v -> {
+            List<Integer> acks = new ArrayList<>();
+            if (checkFrame0.getState())
+                acks.add(0);
+            if (checkFrame1.getState())
+                acks.add(1);
+            if (checkFrame2.getState())
+                acks.add(2);
+            if (checkFrame3.getState())
+                acks.add(3);
+
+            if (receiver.returnAck(acks)) {
+                Toast.makeText(this, "Acks sent", Toast.LENGTH_SHORT).show();
+                if (acks.size() == 4) {
+                    frame0.getEditText().setText("");
+                    frame1.getEditText().setText("");
+                    frame2.getEditText().setText("");
+                    frame3.getEditText().setText("");
+                }
+            }
+
+        });
+
     }
 
-    public void addMessage(String message, int id_sender, int msgId) {
-        String text = "Client " + id_sender + " : " + message + "\n";
-        textView.getEditText().append(text);
-
-        switch (msgId) {
-            case 0:
-                waiting.setText("Waiting for the frame 1");
-                break;
-            case 1:
-                waiting.setText("Waiting for the frame 0");
-                break;
-            default:
-                waiting.setText("Unknown frame number !!!");
-
-        }
-    }
 
 }

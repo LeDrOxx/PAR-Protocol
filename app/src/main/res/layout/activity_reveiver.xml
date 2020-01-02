@@ -80,7 +80,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:focusable="false"
-                android:focusableInTouchMode="true"
+                android:focusableInTouchMode="false"
                 android:gravity="top|left"
                 android:hint="Frame 0"
                 android:inputType="textMultiLine"
@@ -103,7 +103,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:focusable="false"
-                android:focusableInTouchMode="true"
+                android:focusableInTouchMode="false"
                 android:gravity="top|left"
                 android:hint="Frame 1"
                 android:inputType="textMultiLine"
@@ -126,7 +126,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:focusable="false"
-                android:focusableInTouchMode="true"
+                android:focusableInTouchMode="false"
                 android:gravity="top|left"
                 android:hint="Frame 2"
                 android:inputType="textMultiLine"
@@ -149,7 +149,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:focusable="false"
-                android:focusableInTouchMode="true"
+                android:focusableInTouchMode="false"
                 android:gravity="top|left"
                 android:hint="Frame 3"
                 android:inputType="textMultiLine"
@@ -164,7 +164,7 @@
             android:textSize="14sp"
             app:colorBorder="@color/colorAccent"
             app:layout_constraintBottom_toBottomOf="@+id/to"
-            app:layout_constraintEnd_toStartOf="@+id/textView3"
+            app:layout_constraintEnd_toStartOf="@+id/guideline4"
             app:layout_constraintStart_toEndOf="@+id/textView"
             app:layout_constraintTop_toTopOf="parent"
             app:on="false"
@@ -191,15 +191,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.96" />
-
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Waiting for the frame 0"
-            app:layout_constraintBottom_toBottomOf="@+id/switch_button2"
-            app:layout_constraintEnd_toStartOf="@+id/guideline4"
-            app:layout_constraintTop_toTopOf="@+id/switch_button2" />
 
         <TextView
             android:id="@+id/textView"

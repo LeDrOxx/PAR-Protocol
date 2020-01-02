@@ -1,5 +1,6 @@
 package com.droxx69.tp1apr.receiver;
 
+
 import android.annotation.SuppressLint;
 
 import com.droxx69.tp1apr.models.Message;
@@ -25,8 +26,8 @@ public class Receiver {
 
     private Message msg;
 
-    private int lostAck = 0;
-    private List<Message> window = new ArrayList<>();
+    @SuppressLint("UseSparseArrays")
+    private HashMap<Integer, Message> window = new HashMap<>();
 
     public Receiver(String server, int port, ReceiverActivity mCtx) {
         this.server = server;
@@ -34,61 +35,37 @@ public class Receiver {
         this.mCtx = mCtx;
     }
 
-    public Receiver(String server, int port) {
-        this.server = server;
-        this.port = port;
-    }
 
     public boolean connect() {
         final boolean[] result = {true};
-        new Thread(new Runnable() { //thread anonyme ghir 3la jal cnx y connecti w c bn
-            @Override
-            public void run() {
-                try {
-                    socket = new Socket(server, port);
-                    sOutput = new ObjectOutputStream(socket.getOutputStream());
-                    sInput = new ObjectInputStream(socket.getInputStream());
-                    new ListenFromServer().start();
-                } catch (Exception ec) {
-                    result[0] = false;
-                }
+        new Thread(() -> {
+            try {
+                socket = new Socket(server, port);
+                sOutput = new ObjectOutputStream(socket.getOutputStream());
+                sInput = new ObjectInputStream(socket.getInputStream());
+                new ListenFromServer().start();
+            } catch (Exception ec) {
+                result[0] = false;
             }
         }).start();
 
         return result[0];
     }
 
-    boolean sendMessage(final Message msg) {
-        final boolean[] result = {true};
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    sOutput.writeObject(msg);
-
-                } catch (IOException e) {
-                    result[0] = false;
+    boolean returnAck(List<Integer> acks) {
+        for (Integer id : acks)
+            try {
+                if (!window.isEmpty()) {
+                    Message tempMessage = window.get(id).switchId();
+                    sOutput.writeObject(tempMessage);
                 }
+            } catch (IOException e) {
+                return false;
             }
-        }).start();
+        if (acks.size() >= 4)
+            window.clear();
 
-        return result[0];
-    }
-
-    boolean shouldReturnAck() {
-        return mCtx.noise <= lostAck;
-    }
-
-    private void checkWindow(){
-        if (window.size() >= 2){
-            boolean shouldClean =  true;
-            for (Message m : window){
-                if (!m.isReceived())
-                    shouldClean = false;
-            }
-            if (shouldClean)
-                window.clear();
-        }
+        return true;
     }
 
     class ListenFromServer extends Thread {
@@ -100,38 +77,20 @@ public class Receiver {
                     msg = (Message) sInput.readObject();
                     if (msg.getMyId() != -1) {
                         myId = msg.getMyId();
-                        mCtx.runOnUiThread(new Runnable() {
-                            public void run() {
-                                mCtx.showToast("You are the client number : " + myId);
-                            }
-                        });
+                        mCtx.runOnUiThread(() -> mCtx.showToast("You are the client number : " + myId));
 
 
+                    } else if (msg.isReceiverDisconnected()) {
+                        mCtx.runOnUiThread(() -> mCtx.showToast("Sender disconnected"));
                     } else {
                         msg.setReceived(true);
 
-                        if (msg.getMsg_id() == window.size()) {
-                            window.add(msg);
-                            mCtx.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mCtx.addMessage(msg.getMessage(), msg.getId_Receiver(), msg.getMsg_id());
-                                }
-                            });
+
+                        if (!window.keySet().contains(msg.getMsg_id())) {
+                            window.put(msg.getMsg_id(), msg);
+                            setFrameText(msg.getMessage(), msg.getMsg_id());
                         }
 
-                        if (shouldReturnAck()) {
-                            int idNewReceiver = msg.getId_Sender();
-                            msg.setId_Sender(myId);
-                            msg.setId_Receiver(idNewReceiver);
-
-                            sendMessage(msg);
-                            lostAck = 0;
-                        } else {
-                            lostAck++;
-                        }
-
-                        checkWindow();
                     }
 
                 } catch (IOException e) {
@@ -140,6 +99,23 @@ public class Receiver {
                 } catch (ClassNotFoundException e2) {
                     e2.printStackTrace();
                 }
+            }
+        }
+
+        void setFrameText(String text, int number) {
+            switch (number) {
+                case 0:
+                    mCtx.runOnUiThread(() -> mCtx.frame0.getEditText().setText(text));
+                    break;
+                case 1:
+                    mCtx.runOnUiThread(() -> mCtx.frame1.getEditText().setText(text));
+                    break;
+                case 2:
+                    mCtx.runOnUiThread(() -> mCtx.frame2.getEditText().setText(text));
+                    break;
+                case 3:
+                    mCtx.runOnUiThread(() -> mCtx.frame3.getEditText().setText(text));
+                    break;
             }
         }
     }

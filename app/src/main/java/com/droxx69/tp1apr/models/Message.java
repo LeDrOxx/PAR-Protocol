@@ -17,6 +17,25 @@ public class Message implements Serializable {
         this.message = message;
     }
 
+    @Override
+    public boolean equals(Object object) {
+        boolean sameSame = false;
+
+        if (object != null && object instanceof Message) {
+            sameSame = this.msg_id == ((Message) object).msg_id;
+        }
+
+        return sameSame;
+    }
+
+    public Message switchId() {
+        int temp = id_Receiver;
+        id_Receiver = id_Sender;
+        id_Sender = temp;
+
+        return this;
+    }
+
     public boolean isReceiverDisconnected() {
         return receiverDisconnected;
     }

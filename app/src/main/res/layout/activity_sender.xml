@@ -15,8 +15,9 @@
             android:id="@+id/ic_frameZero"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginEnd="8dp"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/frameZeroInput"
             app:layout_constraintEnd_toEndOf="@+id/frameZeroInput"
             app:layout_constraintTop_toTopOf="@+id/frameZeroInput"
             tools:ignore="VectorDrawableCompat" />
@@ -25,8 +26,9 @@
             android:id="@+id/ic_frameOne"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginEnd="8dp"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/frameOneInput"
             app:layout_constraintEnd_toEndOf="@+id/frameOneInput"
             app:layout_constraintTop_toTopOf="@+id/frameOneInput"
             tools:ignore="VectorDrawableCompat" />
@@ -35,8 +37,9 @@
             android:id="@+id/ic_frameTwo"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginEnd="8dp"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/frameTwoInput"
             app:layout_constraintEnd_toEndOf="@+id/frameTwoInput"
             app:layout_constraintTop_toTopOf="@+id/frameTwoInput"
             tools:ignore="VectorDrawableCompat" />
@@ -45,8 +48,9 @@
             android:id="@+id/ic_frameThree"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginEnd="8dp"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/frameThreeInput"
             app:layout_constraintEnd_toEndOf="@+id/frameThreeInput"
             app:layout_constraintTop_toTopOf="@+id/frameThreeInput"
             tools:ignore="VectorDrawableCompat" />
@@ -68,8 +72,6 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:focusable="false"
-                android:focusableInTouchMode="true"
                 android:gravity="top|left"
                 android:hint="Frame 0"
                 android:inputType="textMultiLine"
@@ -91,8 +93,6 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:focusable="false"
-                android:focusableInTouchMode="true"
                 android:gravity="top|left"
                 android:hint="Frame 1"
                 android:inputType="textMultiLine"
@@ -114,8 +114,6 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:focusable="false"
-                android:focusableInTouchMode="true"
                 android:gravity="top|left"
                 android:hint="Frame 2"
                 android:inputType="textMultiLine"
@@ -137,8 +135,6 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:focusable="false"
-                android:focusableInTouchMode="true"
                 android:gravity="top|left"
                 android:hint="Frame 3"
                 android:inputType="textMultiLine"

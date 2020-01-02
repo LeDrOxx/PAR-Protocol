@@ -1,5 +1,13 @@
 package com.droxx69.tp1apr.sender;
 
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.view.View;
+
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
+
+import com.droxx69.tp1apr.R;
 import com.droxx69.tp1apr.models.Message;
 
 import java.io.IOException;
@@ -20,8 +28,10 @@ public class Sender {
     private SenderActivity mCtx;
 
     private Message msg;
+    private String protocol;
 
-    private List<Message> window = new ArrayList<>();
+    private List<Message> window;
+    int received = 0;
 
 
     public Sender(String server, int port, SenderActivity mCtx) {
@@ -30,62 +40,69 @@ public class Sender {
         this.mCtx = mCtx;
     }
 
-    public Sender(String server, int port) {
-        this.server = server;
-        this.port = port;
-    }
 
     public boolean connect() {
         final boolean[] result = {true};
-        new Thread(new Runnable() { //thread anonyme ghir 3la jal cnx y connecti w c bn
-            @Override
-            public void run() {
-                try {
-                    socket = new Socket(server, port);
-                    sOutput = new ObjectOutputStream(socket.getOutputStream());
-                    sInput = new ObjectInputStream(socket.getInputStream());
-                    new ListenFromServer().start();
-                } catch (Exception ec) {
-                    result[0] = false;
-                }
+        new Thread(() -> { //thread anonyme ghir 3la jal cnx y connecti w c bn
+            try {
+                socket = new Socket(server, port);
+                sOutput = new ObjectOutputStream(socket.getOutputStream());
+                sInput = new ObjectInputStream(socket.getInputStream());
+                new ListenFromServer().start();
+            } catch (Exception ec) {
+                result[0] = false;
             }
         }).start();
 
         return result[0];
     }
 
-    boolean sendMessage(final String strMsg, final int to) {
-        final boolean[] result = {true};
-        final Message InnerMsg = new Message(myId, to, strMsg);
-        InnerMsg.setMsg_id(window.size());
-
-
+    boolean sendWindow(final List<String> newWindow, final int to, String protocol) {
+        this.protocol = protocol;
+        window = new ArrayList<>();
+        for (String frame : newWindow) {
+            try {
+                Message tempMessage = new Message(myId, to, frame);
+                tempMessage.setMsg_id(window.size());
+                window.add(tempMessage);
+                sOutput.writeObject(tempMessage);
+            } catch (IOException e) {
+                return false;
+            }
+        }
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                try {
-                    sOutput.writeObject(InnerMsg);
-                    checkMsg(InnerMsg, this);
-                } catch (IOException e) {
-                    result[0] = false;
-                }
+                checkWindow(this);
             }
         };
-
         Thread thread = new Thread(runnable);
         thread.start();
-        window.add(InnerMsg);
-
-        return result[0];
+        return true;
     }
 
-
-    private void checkMsg(Message msg, Runnable thread) {
+    private void checkWindow(Runnable thread) {
         try {
             synchronized (thread) {
-                thread.wait(1000 * 3);
-                if (!window.isEmpty() && !window.get(msg.getMsg_id()).isReceived())
-                    retry(msg, thread);
+                thread.wait(1000 * 8);
+                boolean shouldRetry = false;
+                List<Message> lostMessages = new ArrayList<>();
+                for (Message msg : window) {
+                    if (!msg.isReceived()) {
+                        shouldRetry = true;
+                        lostMessages.add(msg);
+                    }
+                }
+
+                if (shouldRetry)
+                    switch (protocol) {
+                        case "goBack":
+                            retry(window, thread);
+                            break;
+                        case "selective":
+                            retry(lostMessages, thread);
+                            break;
+                    }
 
             }
 
@@ -96,27 +113,17 @@ public class Sender {
     }
 
 
-    private void retry(Message msg, Runnable thread) {
+    private void retry(List<Message> messages, Runnable thread) {
         try {
-            sOutput.writeObject(msg);
-            checkMsg(msg, thread);
+            for (Message msg : messages)
+                sOutput.writeObject(msg);
+            checkWindow(thread);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void checkWindow() {
-        if (window.size() >= 2) {
-            boolean shouldClean = true;
-            for (Message m : window) {
-                if (!m.isReceived())
-                    shouldClean = false;
-            }
-            if (shouldClean)
-                window.clear();
-        }
-    }
 
     class ListenFromServer extends Thread {
 
@@ -128,30 +135,38 @@ public class Sender {
                     if (msg.getMyId() != -1) {
                         myId = msg.getMyId();
 
-                        mCtx.runOnUiThread(new Runnable() {
-                            public void run() {
-                                mCtx.showToast("You are the client number : " + myId);
-                                mCtx.btnSend.setEnabled(true);
-                            }
+                        mCtx.runOnUiThread(() -> {
+                            mCtx.showToast("You are the client number : " + myId);
+                            mCtx.btnSend.setEnabled(true);
                         });
+
                     } else if (msg.isReceived()) {
                         window.get(msg.getMsg_id()).setReceived(true);
-                        mCtx.runOnUiThread(new Runnable() {
-                            public void run() {
-                                mCtx.showToast("Message Received ! ");
+                        showMessageReceived(msg.getMsg_id());
+
+                        for (Message msg : window)
+                            if (!msg.isReceived())
+                                showMessageLost(msg.getMsg_id());
+
+                        if (allMsgReceived())
+                            mCtx.runOnUiThread(() -> {
+                                mCtx.showToast("All messages received");
                                 mCtx.btnSend.setEnabled(true);
+                                mCtx.ic_frame0.setVisibility(View.GONE);
+                                mCtx.ic_frame1.setVisibility(View.GONE);
+                                mCtx.ic_frame2.setVisibility(View.GONE);
+                                mCtx.ic_frame3.setVisibility(View.GONE);
+                            });
 
-                            }
-                        });
-
-                        checkWindow();
                     } else if (msg.isReceiverDisconnected()) {
-                        mCtx.runOnUiThread(new Runnable() {
-                            public void run() {
-                                mCtx.showToast("Client disconnected");
-                                mCtx.btnSend.setEnabled(true);
-                                window.clear();
-                            }
+                        mCtx.runOnUiThread(() -> {
+                            mCtx.showToast("Client disconnected");
+                            mCtx.btnSend.setEnabled(true);
+                            showMessageLost(0);
+                            showMessageLost(1);
+                            showMessageLost(2);
+                            showMessageLost(3);
+                            window.clear();
                         });
                     }
 
@@ -162,6 +177,137 @@ public class Sender {
                 }
             }
         }
+
+        boolean allMsgReceived() {
+            for (Message msg : window)
+                if (!msg.isReceived())
+                    return false;
+            return true;
+        }
+
+        void showMessageReceived(int frame) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Drawable d = mCtx.getResources().getDrawable(R.drawable.animated_check);
+                switch (frame) {
+                    case 0: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setVisibility(View.VISIBLE));
+
+                    }
+                    break;
+                    case 1: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 2: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 3: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                }
+
+                if (d instanceof AnimatedVectorDrawable) {
+                    AnimatedVectorDrawable avd = (AnimatedVectorDrawable) d;
+                    mCtx.runOnUiThread(avd::start);
+                } else if (d instanceof AnimatedVectorDrawableCompat) {
+                    AnimatedVectorDrawableCompat avd = (AnimatedVectorDrawableCompat) d;
+                    mCtx.runOnUiThread(avd::start);
+                }
+            } else {
+                switch (frame) {
+                    case 0: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setBackgroundResource(R.drawable.check));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setVisibility(View.VISIBLE));
+                    }
+                    break;
+
+                    case 1: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setBackgroundResource(R.drawable.check));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 2: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setBackgroundResource(R.drawable.check));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 3: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setBackgroundResource(R.drawable.check));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                }
+
+            }
+        }
+
+        void showMessageLost(int frame) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Drawable d = mCtx.getResources().getDrawable(R.drawable.animated_cross);
+                switch (frame) {
+                    case 0: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setVisibility(View.VISIBLE));
+
+                    }
+                    break;
+                    case 1: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 2: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 3: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setImageDrawable(d));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                }
+                if (d instanceof AnimatedVectorDrawable) {
+                    AnimatedVectorDrawable avd = (AnimatedVectorDrawable) d;
+                    mCtx.runOnUiThread(avd::start);
+                } else if (d instanceof AnimatedVectorDrawableCompat) {
+                    AnimatedVectorDrawableCompat avd = (AnimatedVectorDrawableCompat) d;
+                    mCtx.runOnUiThread(avd::start);
+                }
+            } else {
+                switch (frame) {
+                    case 0: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setBackgroundResource(R.drawable.cross));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame0.setVisibility(View.VISIBLE));
+                    }
+                    break;
+
+                    case 1: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setBackgroundResource(R.drawable.cross));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame1.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 2: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setBackgroundResource(R.drawable.cross));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame2.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                    case 3: {
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setBackgroundResource(R.drawable.cross));
+                        mCtx.runOnUiThread(() -> mCtx.ic_frame3.setVisibility(View.VISIBLE));
+                    }
+                    break;
+                }
+
+            }
+        }
+
     }
 
 }
