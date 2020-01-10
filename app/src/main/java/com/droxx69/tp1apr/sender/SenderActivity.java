@@ -1,13 +1,7 @@
 package com.droxx69.tp1apr.sender;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
-
-import android.graphics.drawable.AnimatedVectorDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -24,148 +18,19 @@ import java.util.List;
 public class SenderActivity extends AppCompatActivity {
 
     int portNumber = 8000;
-        String serverAddress = "192.168.1.108";
-//    String serverAddress = "192.168.43.9";
+//        String serverAddress = "192.168.1.108";
+    String serverAddress = "192.168.43.9";
     public Button btnSend;
 
     String protocol = "goBack";
 
     public ImageView ic_frame0, ic_frame1, ic_frame2, ic_frame3;
-    private TextInputLayout frame0, frame1, frame2, frame3;
-
-    public void enableBtn() {
-        btnSend.setEnabled(true);
-    }
-
-    public void disableBtn() {
-        btnSend.setEnabled(false);
-    }
+    public TextInputLayout frame0, frame1, frame2, frame3;
 
     public void showToast(String str) {
         Toast.makeText(this, str, Toast.LENGTH_LONG).show();
     }
 
-//    public void showMessageReceived(int frame) {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            Drawable d = getResources().getDrawable(R.drawable.animated_check);
-//            switch (frame) {
-//                case 0: {
-//                    ic_frame0.setImageDrawable(d);
-//                    ic_frame0.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 1: {
-//                    ic_frame1.setImageDrawable(d);
-//                    ic_frame1.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 2: {
-//                    ic_frame2.setImageDrawable(d);
-//                    ic_frame2.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 3: {
-//                    ic_frame3.setImageDrawable(d);
-//                    ic_frame3.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//            }
-//
-//            if (d instanceof AnimatedVectorDrawable) {
-//                AnimatedVectorDrawable avd = (AnimatedVectorDrawable) d;
-//                avd.start();
-//            } else if (d instanceof AnimatedVectorDrawableCompat) {
-//                AnimatedVectorDrawableCompat avd = (AnimatedVectorDrawableCompat) d;
-//                avd.start();
-//            }
-//        } else {
-//            switch (frame) {
-//                case 0: {
-//                    frame0.setBackgroundResource(R.drawable.check);
-//                    frame0.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//
-//                case 1: {
-//                    frame1.setBackgroundResource(R.drawable.check);
-//                    frame1.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 2: {
-//                    frame2.setBackgroundResource(R.drawable.check);
-//                    frame2.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 3: {
-//                    frame3.setBackgroundResource(R.drawable.check);
-//                    frame3.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//            }
-//
-//        }
-//    }
-//
-//    public void showMessageLost(int frame) {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            Drawable d = getResources().getDrawable(R.drawable.animated_cross);
-//            switch (frame) {
-//                case 0: {
-//                    ic_frame0.setImageDrawable(d);
-//                    ic_frame0.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 1: {
-//                    ic_frame1.setImageDrawable(d);
-//                    ic_frame1.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 2: {
-//                    ic_frame2.setImageDrawable(d);
-//                    ic_frame2.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 3: {
-//                    ic_frame3.setImageDrawable(d);
-//                    ic_frame3.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//            }
-//
-//            if (d instanceof AnimatedVectorDrawable) {
-//                AnimatedVectorDrawable avd = (AnimatedVectorDrawable) d;
-//                avd.start();
-//            } else if (d instanceof AnimatedVectorDrawableCompat) {
-//                AnimatedVectorDrawableCompat avd = (AnimatedVectorDrawableCompat) d;
-//                avd.start();
-//            }
-//        } else {
-//            switch (frame) {
-//                case 0: {
-//                    frame0.setBackgroundResource(R.drawable.cross);
-//                    frame0.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//
-//                case 1: {
-//                    frame1.setBackgroundResource(R.drawable.cross);
-//                    frame1.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 2: {
-//                    frame2.setBackgroundResource(R.drawable.cross);
-//                    frame2.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//                case 3: {
-//                    frame3.setBackgroundResource(R.drawable.cross);
-//                    frame3.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//            }
-//
-//        }
-//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

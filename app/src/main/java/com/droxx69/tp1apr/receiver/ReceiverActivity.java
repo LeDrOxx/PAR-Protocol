@@ -17,10 +17,10 @@ import java.util.List;
 public class ReceiverActivity extends AppCompatActivity {
 
     int portnumber = 8000;
-        String serverAdresse = "192.168.1.108";
-//    String serverAdresse = "192.168.43.9";
+//        String serverAdresse = "192.168.1.108";
+    String serverAdresse = "192.168.43.9";
     public Button btnReturnAck;
-    String protocol;
+    String protocol = "goBack";
 
     public TextInputLayout frame0, frame1, frame2, frame3;
     private IndeterminateCheckBox checkFrame0, checkFrame1, checkFrame2, checkFrame3;
@@ -29,23 +29,6 @@ public class ReceiverActivity extends AppCompatActivity {
     public void showToast(String str) {
         Toast.makeText(this, str, Toast.LENGTH_LONG).show();
     }
-
-//    public void setFrameText(String text, int number) {
-//        switch (number) {
-//            case 0:
-//                frame0.getEditText().setText(text);
-//                break;
-//            case 1:
-//                frame1.getEditText().setText(text);
-//                break;
-//            case 2:
-//                frame2.getEditText().setText(text);
-//                break;
-//            case 3:
-//                frame3.getEditText().setText(text);
-//                break;
-//        }
-//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +70,7 @@ public class ReceiverActivity extends AppCompatActivity {
             if (checkFrame3.getState())
                 acks.add(3);
 
-            if (receiver.returnAck(acks)) {
+            if (receiver.returnAck(acks , protocol)) {
                 Toast.makeText(this, "Acks sent", Toast.LENGTH_SHORT).show();
                 if (acks.size() == 4) {
                     frame0.getEditText().setText("");
