@@ -17,7 +17,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,10 +32,8 @@ public class Sender {
 
     private Message msg;
     private String protocol;
-    String data;
 
     private HashMap<Integer, Message> window = new HashMap<>();
-    private HashMap<Integer, Message> receivedMessages = new HashMap<>();
 
 
     public Sender(String server, int port, SenderActivity mCtx) {
@@ -155,9 +152,8 @@ public class Sender {
                                 if (!msg.isReceived())
                                     showMessageLost(msg.getMsg_id());
                         } else {
-                            receivedMessages.put(msg.getMsg_id(), msg);
                             window.remove(msg.getMsg_id());
-                            clearMsgOnUI(msg.getMsg_id());
+//                            clearMsgOnUI(msg.getMsg_id());
                             slide();
                         }
 
@@ -169,7 +165,6 @@ public class Sender {
                                 mCtx.ic_frame1.setVisibility(View.GONE);
                                 mCtx.ic_frame2.setVisibility(View.GONE);
                                 mCtx.ic_frame3.setVisibility(View.GONE);
-                                receivedMessages.clear();
                             });
 
                     } else if (msg.isReceiverDisconnected()) {
@@ -181,7 +176,6 @@ public class Sender {
                             showMessageLost(2);
                             showMessageLost(3);
                             window.clear();
-                            receivedMessages.clear();
                         });
                     }
 
@@ -197,9 +191,11 @@ public class Sender {
             HashMap<Integer, Message> newWindow = new HashMap<>();
 
             for (int i = 0; i < 4; i++) {
-                if (window.get(i) != null) {
-                    newWindow.put(index, window.get(i));
-                    slideOnUI(i, index);
+                Message tempMsg = window.get(i);
+                if (tempMsg != null) {
+                    tempMsg.setMsg_id(index);
+                    newWindow.put(index, tempMsg);
+                    slideOnUI(i, index, tempMsg.getMessage());
                     index++;
                 }
             }
@@ -207,25 +203,7 @@ public class Sender {
             window = new HashMap<>(newWindow);
         }
 
-        private void slideOnUI(int from, int to) {
-            switch (from) {
-                case 0: {
-                    mCtx.runOnUiThread(() -> data = mCtx.frame0.getEditText().getText().toString());
-                }
-                break;
-                case 1: {
-                    mCtx.runOnUiThread(() -> data = mCtx.frame1.getEditText().getText().toString());
-                }
-                break;
-                case 2: {
-                    mCtx.runOnUiThread(() -> data = mCtx.frame2.getEditText().getText().toString());
-                }
-                break;
-                case 3: {
-                    mCtx.runOnUiThread(() -> data = mCtx.frame3.getEditText().getText().toString());
-                }
-                break;
-            }
+        private void slideOnUI(int from, int to, String data) {
             switch (to) {
                 case 0: {
                     mCtx.runOnUiThread(() -> mCtx.frame0.getEditText().setText(data));
@@ -244,9 +222,7 @@ public class Sender {
                 }
                 break;
             }
-
             clearMsgOnUI(from);
-
         }
 
         private void clearMsgOnUI(int frame) {

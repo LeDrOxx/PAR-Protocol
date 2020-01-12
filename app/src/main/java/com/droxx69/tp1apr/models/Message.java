@@ -95,12 +95,4 @@ public class Message implements Serializable {
     public void setId_Sender(int id_Sender) {
         this.id_Sender = id_Sender;
     }
-
-    public String getMessge() {
-        return message;
-    }
-
-    public void setMessge(String messge) {
-        this.message = message;
-    }
 }

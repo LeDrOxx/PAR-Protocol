@@ -24,7 +24,6 @@ public class Receiver {
     private ReceiverActivity mCtx;
 
     private Message msg;
-    String data;
 
 
     @SuppressLint("UseSparseArrays")
@@ -59,8 +58,10 @@ public class Receiver {
                 if (!window.isEmpty() && window.get(id) != null) {
                     Message tempMessage = window.get(id).switchId();
                     sOutput.writeObject(tempMessage);
-                    if (protocol.equals("selective"))
+                    if (protocol.equals("selective")) {
                         window.remove(id);
+//                        clearMsg(id);
+                    }
                 }
             } catch (IOException e) {
                 return false;
@@ -81,9 +82,11 @@ public class Receiver {
         HashMap<Integer, Message> newWindow = new HashMap<>();
 
         for (int i = 0; i < 4; i++) {
-            if (window.get(i) != null) {
-                newWindow.put(index, window.get(i));
-                slideOnUI(i, index);
+            Message tempMsg = window.get(i);
+            if (tempMsg != null) {
+                tempMsg.setMsg_id(index);
+                newWindow.put(index, tempMsg);
+                slideOnUI(i, index, tempMsg.getMessage());
                 index++;
             }
         }
@@ -91,25 +94,7 @@ public class Receiver {
         window = new HashMap<>(newWindow);
     }
 
-    private void slideOnUI(int from, int to) {
-        switch (from) {
-            case 0: {
-                mCtx.runOnUiThread(() -> data = mCtx.frame0.getEditText().getText().toString());
-            }
-            break;
-            case 1: {
-                mCtx.runOnUiThread(() -> data = mCtx.frame1.getEditText().getText().toString());
-            }
-            break;
-            case 2: {
-                mCtx.runOnUiThread(() -> data = mCtx.frame2.getEditText().getText().toString());
-            }
-            break;
-            case 3: {
-                mCtx.runOnUiThread(() -> data = mCtx.frame3.getEditText().getText().toString());
-            }
-            break;
-        }
+    private void slideOnUI(int from, int to, String data) {
         switch (to) {
             case 0: {
                 mCtx.runOnUiThread(() -> mCtx.frame0.getEditText().setText(data));
@@ -128,9 +113,7 @@ public class Receiver {
             }
             break;
         }
-
         clearMsg(from);
-
     }
 
     private void clearMsg(int frame) {
